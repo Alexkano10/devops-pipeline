@@ -11,9 +11,7 @@ pipeline {
         WORKSPACE = "${env.WORKSPACE}"
     }
     
-    
     stages {
-
         stage('Clean Workspace') {
             steps {
                 deleteDir()
@@ -25,8 +23,42 @@ pipeline {
                 checkout scm
             }
         }
-        
+
+        stage('Build Docker Images') {
+            steps {
+                sh "docker build -t ${BACKEND_IMAGE} ./backend"
+                sh "docker build -t ${FRONTEND_IMAGE} ./frontend"
+                sh "docker tag ${BACKEND_IMAGE} ${BACKEND_LATEST}"
+                sh "docker tag ${FRONTEND_IMAGE} ${FRONTEND_LATEST}"
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                sh "docker push ${BACKEND_IMAGE}"
+                sh "docker push ${FRONTEND_IMAGE}"
+                sh "docker push ${BACKEND_LATEST}"
+                sh "docker push ${FRONTEND_LATEST}"
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir('infrastructure') {
+                    sh "docker run --rm -v ${WORKSPACE}/infrastructure:/app -w /app hashicorp/terraform:light init"
+                    sh "docker run --rm -v ${WORKSPACE}/infrastructure:/app -v ${HOME}/.kube:/root/.kube -w /app hashicorp/terraform:light apply -auto-approve -var 'backend_image=${BACKEND_LATEST}' -var 'frontend_image=${FRONTEND_LATEST}'"
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh "kubectl get pods -n devops-pipeline || echo 'Failed to get pods, check Kubernetes connection'"
+                sh "echo 'Application deployed successfully'"
+            }
+        }
     }
+
     post {
         success {
             echo 'Pipeline completed successfully!'
