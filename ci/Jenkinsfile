@@ -43,13 +43,23 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-            steps {
-                dir('infrastructure') {
-                    sh "docker run --rm -v ${WORKSPACE}/infrastructure:/app -w /app hashicorp/terraform:light init"
-                    sh "docker run --rm -v ${WORKSPACE}/infrastructure:/app -v ${HOME}/.kube:/root/.kube -w /app hashicorp/terraform:light apply -auto-approve -var 'backend_image=${BACKEND_LATEST}' -var 'frontend_image=${FRONTEND_LATEST}'"
-                }
-            }
+             steps {
+              script {
+                sh """
+                ls -l ${WORKSPACE}/infrastructure  # debug
+                docker run --rm -v ${WORKSPACE}/infrastructure:/workspace -w /workspace \
+                -v ${HOME}/.kube:/root/.kube \
+                hashicorp/terraform:light init
+                docker run --rm -v ${WORKSPACE}/infrastructure:/workspace -w /workspace \
+                -v ${HOME}/.kube:/root/.kube \
+                hashicorp/terraform:light apply -auto-approve \
+                -var 'backend_image=${BACKEND_LATEST}' \
+                -var 'frontend_image=${FRONTEND_LATEST}'
+                """
         }
+    }
+}
+
 
         stage('Verify Deployment') {
             steps {
