@@ -10,7 +10,7 @@ pipeline {
         FRONTEND_LATEST = "${DOCKER_REGISTRY}/${APP_NAME}/frontend:latest"
         WORKSPACE = "${env.WORKSPACE}"
     }
-    
+
     stages {
         stage('Clean Workspace') {
             steps {
@@ -43,15 +43,17 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-             steps {
-            dir('infrastructure') {
-                sh 'terraform init'
-                sh "terraform apply -auto-approve -var 'backend_image=${BACKEND_LATEST}' -var 'frontend_image=${FRONTEND_LATEST}'"
+            steps {
+                dir('infrastructure') {
+                    sh 'terraform init'
+                    sh """
+                    terraform apply -auto-approve \
+                      -var 'backend_image=${BACKEND_LATEST}' \
+                      -var 'frontend_image=${FRONTEND_LATEST}'
+                    """
+                }
+            }
         }
-    }
-}
-
-
 
         stage('Verify Deployment') {
             steps {
@@ -63,10 +65,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo '✅ Pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo '❌ Pipeline failed!'
         }
         always {
             sh 'docker system prune -f'
