@@ -1,0 +1,84 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  position: relative;
+}
+
+.environment-badge {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background-color: #61dafb;
+  color: #282c34;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.task-form {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.task-form input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+}
+
+.task-form button {
+  padding: 10px 20px;
+  background-color: #61dafb;
+  color: #282c34;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 0 4px 4px 0;
+  font-weight: bold;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #f9f9f9;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.task-item button {
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.empty-message {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}

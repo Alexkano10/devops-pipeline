@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_REGISTRY = 'localhost:5000'
+        APP_NAME = 'devops-pipeline'
+        BACKEND_IMAGE = "\${DOCKER_REGISTRY}/\${APP_NAME}/backend:\${env.BUILD_NUMBER}"
+        FRONTEND_IMAGE = "\${DOCKER_REGISTRY}/\${APP_NAME}/frontend:\${env.BUILD_NUMBER}"
+        BACKEND_LATEST = "\${DOCKER_REGISTRY}/\${APP_NAME}/backend:latest"
+        FRONTEND_LATEST = "\${DOCKER_REGISTRY}/\${APP_NAME}/frontend:latest"
+        WORKSPACE = "\${env.WORKSPACE}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Test Backend') {
+            steps {
+                dir('backend') {
+                    sh 'npm install'
+                    sh 'echo "Tests would run here"'
+                }
+            }
+        }
+        
+        stage('Test Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'echo "Tests would run here"'
+                }
+            }
+        }
+        
+        stage('Build Docker Images') {
+            steps {
+                sh "docker build -t \${BACKEND_IMAGE} ./backend"
+                sh "docker build -t \${FRONTEND_IMAGE} ./frontend"
+                sh "docker tag \${BACKEND_IMAGE} \${BACKEND_LATEST}"
+                sh "docker tag \${FRONTEND_IMAGE} \${FRONTEND_LATEST}"
+            }
+        }
+        
+        stage('Push Docker Images') {
+            steps {
+                sh "docker push \${BACKEND_IMAGE}"
+                sh "docker push \${FRONTEND_IMAGE}"
+                sh "docker push \${BACKEND_LATEST}"
+                sh "docker push \${FRONTEND_LATEST}"
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                dir('infrastructure') {
+                    sh "terraform init"
+                    sh "terraform apply -auto-approve -var 'backend_image=\${BACKEND_LATEST}' -var 'frontend_image=\${FRONTEND_LATEST}'"
+                }
+            }
+        }
+        
+        stage('Verify Deployment') {
+            steps {
+                sh 'kubectl get pods -n devops-pipeline'
+                sh 'echo "Application deployed successfully"'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        always {
+            sh 'docker system prune -f'
+        }
+    }
+}

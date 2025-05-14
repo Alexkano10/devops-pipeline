@@ -1,0 +1,46 @@
+services:
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mongo
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
