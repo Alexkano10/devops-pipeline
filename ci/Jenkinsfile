@@ -18,13 +18,14 @@ pipeline {
             }
         }
         
-        stage('Test Backend') {
-            steps {
-                sh """
-                docker run --rm -v ${WORKSPACE}/backend:/app -w /app node:16-alpine sh -c 'npm install && echo "Tests would run here"'
-                """
-            }
-        }
+       stage('Test Backend') {
+    steps {
+        sh """
+        docker run --rm -v ${WORKSPACE}/backend:/app -w /app node:16-alpine sh -c 'ls -l /app && cat package.json && npm ci && echo "Tests would run here"'
+        """
+          }
+       }
+
         
         stage('Test Frontend') {
             steps {
